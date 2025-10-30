@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">   //hello note
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Motion Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Security Camera Alert Log</h1>
+        <p>System Status: <span id="status">Online</span></p>
+    </header>
+
+    <h2>Recent Motion Alerts</h2>
+    <ul id="alerts-container" class="alert-list">
+        </ul>
+    
+    <script>
+        // Use the local URL for testing. CHANGE THIS to your PUBLIC DEPLOYMENT URL later!...
+        const API_URL = 'http://127.0.0.1:5000/api/alerts'; 
+
+        function fetchAlerts() {
+            fetch(API_URL) 
+                .then(response => {
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    return response.json();
+                })
+                .then(alerts => {
+                    const container = document.getElementById('alerts-container');
+                    container.innerHTML = ''; 
+                    
+                    if (alerts.length === 0) {
+                        container.innerHTML = '<li>No motion alerts recorded yet.</li>';
+                        return;
+                    }
+
+                    alerts.forEach(alert => {
+                        const li = document.createElement('li');
+                        li.className = 'alert-item';
+                        const time = new Date(alert.timestamp).toLocaleString(); 
+                        
+                        li.innerHTML = `
+                            <span class="location">🚨 MOTION DETECTED at ${alert.location.toUpperCase()}</span> 
+                            <span class="timestamp">${time}</span>
+                        `;
+                        container.appendChild(li);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching alerts:', error);
+                    document.getElementById('status').textContent = 'Error (Check Server)';
+                });
+        }
+
+        // Fetch immediately and then poll every 5 seconds
+        fetchAlerts();
+        setInterval(fetchAlerts, 5000); 
+    </script>
+</body>
+</html>
